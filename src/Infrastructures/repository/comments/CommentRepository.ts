@@ -64,6 +64,7 @@ class CommentRepository extends CommentRepositoryBase {
   async getCommentsByThreadId(threadId: string, commentsQueryOptions?: Partial<PaginationOptions>, repliesQueryOptions?: Partial<PaginationOptions>): Promise<Comments> {
     const subQuery = this.replyRepository
       .createQueryBuilder('reply')
+      .withDeleted()
       .select('reply.id')
       .where('reply.comment = comment.id')
       .getQuery()
@@ -71,6 +72,7 @@ class CommentRepository extends CommentRepositoryBase {
     const commentsLimit = commentsQueryOptions?.limit ?? 10
     const commentsOffset = commentsQueryOptions?.offset ?? 0
     const comments = await this.repository.createQueryBuilder('comment')
+      .withDeleted()
       .leftJoinAndSelect('comment.commenter', 'commenter')
       .leftJoinAndSelect('comment.replies', 'reply', `reply.id IN (${subQuery})`)
       .leftJoinAndSelect('reply.replier', 'replier')
@@ -86,7 +88,6 @@ class CommentRepository extends CommentRepositoryBase {
         'reply.deletedAt',
         'replier.username'
       ])
-      .withDeleted()
       .where('comment.thread_id = :threadId', { threadId })
       .orderBy('comment.createdAt', 'ASC')
       .skip(commentsOffset)
