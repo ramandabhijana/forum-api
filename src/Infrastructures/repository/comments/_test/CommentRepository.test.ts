@@ -255,7 +255,7 @@ describe('CommentRepository', () => {
           id: 'reply-xyz',
           content: 'a reply',
           username,
-          date: new Date('2022-03-03')
+          date: new Date('2022-03-06')
         },
         {
           id: 'reply-abc',
@@ -267,7 +267,7 @@ describe('CommentRepository', () => {
           id: 'reply-def',
           content: 'a reply',
           username,
-          date: new Date('2022-03-05')
+          date: new Date('2022-03-07')
         },
         {
           id: 'reply-ghi',
@@ -320,16 +320,16 @@ describe('CommentRepository', () => {
           date: new Date('2022-03-03'),
           replies: [
             {
-              id: 'reply-xyz',
-              content: 'a reply',
-              username,
-              date: new Date('2022-03-03')
-            },
-            {
               id: 'reply-abc',
               content: 'a reply',
               username,
               date: new Date('2022-03-04')
+            },
+            {
+              id: 'reply-xyz',
+              content: 'a reply',
+              username,
+              date: new Date('2022-03-06')
             }
           ]
         },
@@ -360,16 +360,16 @@ describe('CommentRepository', () => {
           date: new Date('2022-03-06'),
           replies: [
             {
-              id: 'reply-def',
-              content: 'a reply',
-              username,
-              date: new Date('2022-03-05')
-            },
-            {
               id: 'reply-ghi',
               content: 'a reply',
               username,
               date: new Date('2022-03-06')
+            },
+            {
+              id: 'reply-def',
+              content: 'a reply',
+              username,
+              date: new Date('2022-03-07')
             }
           ]
         }
