@@ -444,6 +444,23 @@ describe('CommentRepository', () => {
       expect(commentsWithOffset).toHaveLength(0)
     })
 
+    it('should return replies with appropriate amount as requested', async () => {
+      // Arrange
+      const repository = new CommentRepository(dataSource, () => 'id')
+
+      // Action
+      const commentsWithLimit = await repository.getCommentsByThreadId(threadId, undefined, { limit: 1 })
+      const commentsWithOffset = await repository.getCommentsByThreadId(threadId, undefined, { offset: 3 }) // there's only 2 replies saved for each comment
+
+      // Assert
+      for (const comment of commentsWithLimit) {
+        expect(comment.replies).toHaveLength(1)
+      }
+      for (const comment of commentsWithOffset) {
+        expect(comment.replies).toHaveLength(0)
+      }
+    })
+
     it('should return comments sorted by date created in ascending order', async () => {
       // Arrange
       const repository = new CommentRepository(dataSource, () => 'id')
