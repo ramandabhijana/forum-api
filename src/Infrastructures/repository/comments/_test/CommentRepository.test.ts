@@ -3,7 +3,10 @@ import NotFoundError from '../../../../Commons/exceptions/NotFoundError'
 import AddedComment from '../../../../Domains/comments/entities/AddedComment'
 import { type CommentWithUsernamePayload } from '../../../../Domains/comments/entities/CommentWithUsername'
 import NewComment from '../../../../Domains/comments/entities/NewComment'
+import { type ReplyWithUsernamePayload } from '../../../../Domains/replies/entities/ReplyWithUsername'
+import { type Comments } from '../../../../Domains/threads/entities/DetailedThread'
 import { AppDataSource } from '../../../database/data-source'
+import { Reply } from '../../replies/model/Reply'
 import { Thread } from '../../threads/model/Thread'
 import { User } from '../../users/model/User'
 import CommentRepository from '../CommentRepository'
@@ -200,6 +203,184 @@ describe('CommentRepository', () => {
 
       // Action & Assert
       await expect(repository.verifyCommentOwner(commentId, userId)).resolves.not.toThrowError(AuthorizationError)
+    })
+  })
+
+  describe('getCommentsByThreadId function', () => {
+    const userId = 'user-xyz'
+    const threadId = 'thread-xyz'
+    const username = 'pengguna'
+
+    beforeAll(async () => {
+      await dataSource.instance.getRepository(User).save({
+        id: userId,
+        fullName: 'pengguna',
+        password: 'secret',
+        username
+      })
+
+      await dataSource.instance.getRepository(Thread).save({
+        id: threadId,
+        body: 'sebuah thread',
+        title: 'judul',
+        owner: { id: userId }
+      })
+
+      const comments: CommentWithUsernamePayload[] = [
+        {
+          id: 'comment-xyz',
+          content: 'a comment',
+          username,
+          date: new Date('2022-03-03')
+        },
+        {
+          id: 'comment-abc',
+          content: 'a comment',
+          username,
+          date: new Date('2022-03-04')
+        },
+        {
+          id: 'comment-def',
+          content: 'a comment',
+          username,
+          date: new Date('2022-03-05')
+        }
+      ]
+
+      const replies: ReplyWithUsernamePayload[] = [
+        {
+          id: 'reply-xyz',
+          content: 'a reply',
+          username,
+          date: new Date('2022-03-03')
+        },
+        {
+          id: 'reply-abc',
+          content: 'a reply',
+          username,
+          date: new Date('2022-03-04')
+        },
+        {
+          id: 'reply-def',
+          content: 'a reply',
+          username,
+          date: new Date('2022-03-05')
+        },
+        {
+          id: 'reply-ghi',
+          content: 'a reply',
+          username,
+          date: new Date('2022-03-06')
+        },
+        {
+          id: 'reply-jkl',
+          content: 'a reply',
+          username,
+          date: new Date('2022-03-05')
+        },
+        {
+          id: 'reply-mno',
+          content: 'a reply',
+          username,
+          date: new Date('2022-03-06')
+        }
+      ]
+
+      for (const comment of comments) {
+        await dataSource.instance.getRepository(Comment).save({
+          ...comment,
+          createdAt: comment.date,
+          commenter: { id: userId },
+          thread: { id: threadId },
+          replies: replies.splice(0, 2).map(r => ({
+            ...r,
+            createdAt: r.date,
+            replier: { id: userId },
+            comment: { id: comment.id }
+          }))
+        })
+      }
+    })
+
+    afterAll(async () => {
+      await dataSource.instance.getRepository(Reply).delete({})
+      await dataSource.instance.getRepository(Comment).delete({})
+      await dataSource.instance.getRepository(Thread).delete({ id: threadId })
+      await dataSource.instance.getRepository(User).delete({ id: userId })
+    })
+
+    it('should return comments with original content when not deleted', async () => {
+      // Arrange
+      const expectedComments: Comments = [
+        {
+          id: 'comment-xyz',
+          content: 'a comment',
+          username,
+          date: new Date('2022-03-03'),
+          replies: [
+            {
+              id: 'reply-xyz',
+              content: 'a reply',
+              username,
+              date: new Date('2022-03-03')
+            },
+            {
+              id: 'reply-abc',
+              content: 'a reply',
+              username,
+              date: new Date('2022-03-04')
+            }
+          ]
+        },
+        {
+          id: 'comment-abc',
+          content: 'a comment',
+          username,
+          date: new Date('2022-03-04'),
+          replies: [
+            {
+              id: 'reply-def',
+              content: 'a reply',
+              username,
+              date: new Date('2022-03-05')
+            },
+            {
+              id: 'reply-ghi',
+              content: 'a reply',
+              username,
+              date: new Date('2022-03-06')
+            }
+          ]
+        },
+        {
+          id: 'comment-def',
+          content: 'a comment',
+          username,
+          date: new Date('2022-03-05'),
+          replies: [
+            {
+              id: 'reply-jkl',
+              content: 'a reply',
+              username,
+              date: new Date('2022-03-05')
+            },
+            {
+              id: 'reply-mno',
+              content: 'a reply',
+              username,
+              date: new Date('2022-03-06')
+            }
+          ]
+        }
+      ]
+
+      const repository = new CommentRepository(dataSource, () => '')
+
+      // Action
+      const comments = await repository.getCommentsByThreadId(threadId)
+
+      // Assert
+      expect(comments).toEqual(expectedComments)
     })
   })
 

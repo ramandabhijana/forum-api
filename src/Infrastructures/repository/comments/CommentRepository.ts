@@ -8,6 +8,7 @@ import { COMMENT_NOT_FOUND, COMMENT_OWNER_NOT_AUTHORIZED } from '../../../Common
 import AuthorizationError from '../../../Commons/exceptions/AuthorizationError'
 import { type PaginationOptions } from '../../../Commons/types/Types'
 import CommentWithUsername, { type CommentWithUsernamePayload } from '../../../Domains/comments/entities/CommentWithUsername'
+import { Comments } from '../../../Domains/threads/entities/DetailedThread'
 
 class CommentRepository extends CommentRepositoryBase {
   private readonly repository: Repository<Comment>
@@ -54,6 +55,10 @@ class CommentRepository extends CommentRepositoryBase {
     if (comment.commenter.id !== owner) {
       throw new AuthorizationError(COMMENT_OWNER_NOT_AUTHORIZED)
     }
+  }
+
+  async getCommentsByThreadId(threadId: string, commentsQueryOptions?: Partial<PaginationOptions>, repliesQueryOptions?: Partial<PaginationOptions>): Promise<Comments> {
+    throw new Error('Method not implemented.')
   }
 
   async getCommentsWithUsernameByThreadId(threadId: string, options?: Partial<PaginationOptions>): Promise<CommentWithUsernamePayload[]> {
