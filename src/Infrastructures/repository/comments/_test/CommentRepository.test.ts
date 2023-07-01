@@ -399,6 +399,19 @@ describe('CommentRepository', () => {
       // Assert
       expect(comments.length).toEqual(initialLength)
     })
+
+    it('should return comments with appropriate amount as requested', async () => {
+      // Arrange
+      const repository = new CommentRepository(dataSource, () => 'id')
+
+      // Action
+      const commentsWithLimit = await repository.getCommentsByThreadId(threadId, { limit: 2 })
+      const commentsWithOffset = await repository.getCommentsByThreadId(threadId, { offset: 10 }) // there's only 3 comments saved
+
+      // Assert
+      expect(commentsWithLimit).toHaveLength(2)
+      expect(commentsWithOffset).toHaveLength(0)
+    })
   })
 
   describe('getCommentsWithUsernameByThreadId function', () => {
