@@ -472,6 +472,20 @@ describe('CommentRepository', () => {
       const dates = comments.map(c => c.date)
       expect(isSortedByAscendingDate(dates)).toBe(true)
     })
+
+    it('should return replies sorted by date created in ascending order', async () => {
+      // Arrange
+      const repository = new CommentRepository(dataSource, () => 'id')
+
+      // Action
+      const comments = await repository.getCommentsByThreadId(threadId)
+
+      // Assert
+      for (const comment of comments) {
+        const dates = comment.replies.map(r => r.date)
+        expect(isSortedByAscendingDate(dates)).toBe(true)
+      }
+    })
   })
 
   describe('getCommentsWithUsernameByThreadId function', () => {
