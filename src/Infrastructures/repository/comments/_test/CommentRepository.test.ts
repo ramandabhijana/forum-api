@@ -412,6 +412,18 @@ describe('CommentRepository', () => {
       expect(commentsWithLimit).toHaveLength(2)
       expect(commentsWithOffset).toHaveLength(0)
     })
+
+    it('should return comments sorted by date created in ascending order', async () => {
+      // Arrange
+      const repository = new CommentRepository(dataSource, () => 'id')
+
+      // Action
+      const comments = await repository.getCommentsByThreadId(threadId)
+
+      // Assert
+      const dates = comments.map(c => c.date)
+      expect(isSortedByAscendingDate(dates)).toBe(true)
+    })
   })
 
   describe('getCommentsWithUsernameByThreadId function', () => {
@@ -638,3 +650,14 @@ describe('CommentRepository', () => {
     })
   })
 })
+
+// Test helper function, consider to move it to a separate file
+function isSortedByAscendingDate(dateList: Date[]): boolean {
+  for (let i = 0; i < dateList.length - 1; i++) {
+    const currentDate = new Date(dateList[i])
+    const nextDate = new Date(dateList[i + 1])
+
+    if (currentDate > nextDate) return false
+  }
+  return true
+}
