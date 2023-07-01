@@ -240,7 +240,7 @@ describe('CommentRepository', () => {
           id: 'comment-abc',
           content: 'a comment',
           username,
-          date: new Date('2022-03-04')
+          date: new Date('2022-03-06')
         },
         {
           id: 'comment-def',
@@ -337,7 +337,7 @@ describe('CommentRepository', () => {
           id: 'comment-abc',
           content: 'a comment',
           username,
-          date: new Date('2022-03-04'),
+          date: new Date('2022-03-06'),
           replies: [
             {
               id: 'reply-def',
