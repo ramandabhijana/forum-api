@@ -226,7 +226,9 @@ describe('CommentRepository', () => {
         title: 'judul',
         owner: { id: userId }
       })
+    })
 
+    beforeEach(async () => {
       const comments: CommentWithUsernamePayload[] = [
         {
           id: 'comment-xyz',
