@@ -1,4 +1,5 @@
 import { type PaginationOptions } from '../../Commons/types/Types'
+import { type Comments } from '../threads/entities/DetailedThread'
 import { type AddedCommentPayload } from './entities/AddedComment'
 import { type CommentWithUsernamePayload } from './entities/CommentWithUsername'
 
@@ -7,6 +8,7 @@ abstract class CommentRepositoryBase {
   abstract verifyCommentExists(commentId: string): Promise<void>
   abstract verifyCommentOwner(commentId: string, owner: string): Promise<void>
   abstract getCommentsWithUsernameByThreadId(threadId: string, options?: Partial<PaginationOptions>): Promise<CommentWithUsernamePayload[]>
+  abstract getCommentsByThreadId(threadId: string, commentsQueryOptions?: Partial<PaginationOptions>, repliesQueryOptions?: Partial<PaginationOptions>): Promise<Comments>
   abstract deleteComment(commentId: string): Promise<void>
 }
 
