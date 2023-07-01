@@ -88,6 +88,7 @@ class CommentRepository extends CommentRepositoryBase {
       ])
       .withDeleted()
       .where('comment.thread_id = :threadId', { threadId })
+      .orderBy('comment.createdAt', 'ASC')
       .skip(commentsOffset)
       .take(commentsLimit)
       .getMany()
