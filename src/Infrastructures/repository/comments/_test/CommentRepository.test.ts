@@ -310,7 +310,7 @@ describe('CommentRepository', () => {
       await dataSource.instance.getRepository(User).delete({ id: userId })
     })
 
-    it('should return comments with original content when not deleted', async () => {
+    it('should return comments properly', async () => {
       // Arrange
       const expectedComments: Comments = [
         {
