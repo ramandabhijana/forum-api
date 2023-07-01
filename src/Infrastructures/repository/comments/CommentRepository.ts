@@ -8,10 +8,13 @@ import { COMMENT_NOT_FOUND, COMMENT_OWNER_NOT_AUTHORIZED } from '../../../Common
 import AuthorizationError from '../../../Commons/exceptions/AuthorizationError'
 import { type PaginationOptions } from '../../../Commons/types/Types'
 import CommentWithUsername, { type CommentWithUsernamePayload } from '../../../Domains/comments/entities/CommentWithUsername'
-import { Comments } from '../../../Domains/threads/entities/DetailedThread'
+import { type Comments } from '../../../Domains/threads/entities/DetailedThread'
+import { Reply } from '../replies/model/Reply'
+import ReplyWithUsername from '../../../Domains/replies/entities/ReplyWithUsername'
 
 class CommentRepository extends CommentRepositoryBase {
   private readonly repository: Repository<Comment>
+  private readonly replyRepository: Repository<Reply>
 
   constructor(
     dataSource: AppDataSource,
@@ -19,6 +22,7 @@ class CommentRepository extends CommentRepositoryBase {
   ) {
     super()
     this.repository = dataSource.instance.getRepository(Comment)
+    this.replyRepository = dataSource.instance.getRepository(Reply)
   }
 
   async addComment(content: string, threadId: string, owner: string): Promise<AddedCommentPayload> {
@@ -58,7 +62,51 @@ class CommentRepository extends CommentRepositoryBase {
   }
 
   async getCommentsByThreadId(threadId: string, commentsQueryOptions?: Partial<PaginationOptions>, repliesQueryOptions?: Partial<PaginationOptions>): Promise<Comments> {
-    throw new Error('Method not implemented.')
+    const subQuery = this.replyRepository
+      .createQueryBuilder('reply')
+      .select('reply.id')
+      .where('reply.comment = comment.id')
+      .getQuery()
+
+    const comments = await this.repository.createQueryBuilder('comment')
+      .leftJoinAndSelect('comment.commenter', 'commenter')
+      .leftJoinAndSelect('comment.replies', 'reply', `reply.id IN (${subQuery})`)
+      .leftJoinAndSelect('reply.replier', 'replier')
+      .select([
+        'comment.id',
+        'comment.content',
+        'comment.createdAt',
+        'comment.deletedAt',
+        'commenter.username',
+        'reply.id',
+        'reply.content',
+        'reply.createdAt',
+        'reply.deletedAt',
+        'replier.username'
+      ])
+      .where('comment.thread_id = :threadId', { threadId })
+      .getMany()
+
+    return comments.map(commentEntity => {
+      const comment = new CommentWithUsername({
+        id: commentEntity.id,
+        content: commentEntity.content,
+        createdAt: commentEntity.createdAt,
+        deletedAt: commentEntity.deletedAt,
+        username: commentEntity.commenter.username
+      }).asObject
+
+      const replies = commentEntity.replies
+        .map(replyEntity => new ReplyWithUsername({
+          id: replyEntity.id,
+          content: replyEntity.content,
+          createdAt: replyEntity.createdAt,
+          deletedAt: replyEntity.deletedAt,
+          username: replyEntity.replier.username
+        }).asObject)
+
+      return { ...comment, replies }
+    })
   }
 
   async getCommentsWithUsernameByThreadId(threadId: string, options?: Partial<PaginationOptions>): Promise<CommentWithUsernamePayload[]> {
