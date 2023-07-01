@@ -68,6 +68,8 @@ class CommentRepository extends CommentRepositoryBase {
       .where('reply.comment = comment.id')
       .getQuery()
 
+    const commentsLimit = commentsQueryOptions?.limit ?? 10
+    const commentsOffset = commentsQueryOptions?.offset ?? 0
     const comments = await this.repository.createQueryBuilder('comment')
       .leftJoinAndSelect('comment.commenter', 'commenter')
       .leftJoinAndSelect('comment.replies', 'reply', `reply.id IN (${subQuery})`)
@@ -86,6 +88,8 @@ class CommentRepository extends CommentRepositoryBase {
       ])
       .withDeleted()
       .where('comment.thread_id = :threadId', { threadId })
+      .skip(commentsOffset)
+      .take(commentsLimit)
       .getMany()
 
     return comments.map(commentEntity => {
