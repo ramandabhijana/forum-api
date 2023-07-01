@@ -400,6 +400,37 @@ describe('CommentRepository', () => {
       expect(comments.length).toEqual(initialLength)
     })
 
+    it('should include reply that has been soft deleted', async () => {
+      // Arrange
+      const sampleComment = await dataSource.instance.getRepository(Comment)
+        .findOneOrFail({
+          where: {
+            thread: { id: threadId }
+          },
+          relations: { replies: true }
+        })
+
+      const commentId = sampleComment.id
+      const initialLength = sampleComment.replies.length
+      const replyId = sampleComment.replies[0].id
+      await dataSource.instance.getRepository(Reply).softDelete(replyId)
+
+      const repository = new CommentRepository(dataSource, () => 'id')
+
+      // Action
+      const comments = await repository.getCommentsByThreadId(threadId)
+
+      // Assert
+      for (const comment of comments) {
+        if (comment.id === commentId) {
+          expect(comment.replies).toHaveLength(initialLength)
+          return
+        }
+      }
+
+      expect('This code should never be called').toEqual('')
+    })
+
     it('should return comments with appropriate amount as requested', async () => {
       // Arrange
       const repository = new CommentRepository(dataSource, () => 'id')
