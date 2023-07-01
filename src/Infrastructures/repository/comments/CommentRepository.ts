@@ -62,11 +62,15 @@ class CommentRepository extends CommentRepositoryBase {
   }
 
   async getCommentsByThreadId(threadId: string, commentsQueryOptions?: Partial<PaginationOptions>, repliesQueryOptions?: Partial<PaginationOptions>): Promise<Comments> {
+    const repliesLimit = repliesQueryOptions?.limit ?? 10
+    const repliesOffset = repliesQueryOptions?.offset ?? 0
     const subQuery = this.replyRepository
       .createQueryBuilder('reply')
       .withDeleted()
       .select('reply.id')
       .where('reply.comment = comment.id')
+      .skip(repliesOffset)
+      .take(repliesLimit)
       .getQuery()
 
     const commentsLimit = commentsQueryOptions?.limit ?? 10
