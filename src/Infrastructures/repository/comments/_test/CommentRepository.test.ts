@@ -23,6 +23,7 @@ describe('CommentRepository', () => {
   })
 
   afterEach(async () => {
+    await dataSource.instance.getRepository(Reply).clear()
     await dataSource.instance.getRepository(Comment).delete({})
   })
 
@@ -303,8 +304,6 @@ describe('CommentRepository', () => {
     })
 
     afterAll(async () => {
-      await dataSource.instance.getRepository(Reply).delete({})
-      await dataSource.instance.getRepository(Comment).delete({})
       await dataSource.instance.getRepository(Thread).delete({ id: threadId })
       await dataSource.instance.getRepository(User).delete({ id: userId })
     })
