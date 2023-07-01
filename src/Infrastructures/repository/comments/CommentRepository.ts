@@ -84,6 +84,7 @@ class CommentRepository extends CommentRepositoryBase {
         'reply.deletedAt',
         'replier.username'
       ])
+      .withDeleted()
       .where('comment.thread_id = :threadId', { threadId })
       .getMany()
 
