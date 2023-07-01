@@ -1,7 +1,6 @@
 import GetThreadDetailUseCase from '../GetThreadDetailUseCase'
-import CommentWithUsername, { type CommentWithUsernamePayload } from '../../../../Domains/comments/entities/CommentWithUsername'
-import ReplyWithUsername, { type ReplyWithUsernamePayload } from '../../../../Domains/replies/entities/ReplyWithUsername'
-import DetailedThread, { MAX_COMMENTS_COUNT, MAX_REPLIES_PER_COMMENT_COUNT } from '../../../../Domains/threads/entities/DetailedThread'
+import ReplyWithUsername from '../../../../Domains/replies/entities/ReplyWithUsername'
+import DetailedThread, { type Comments, MAX_COMMENTS_COUNT, MAX_REPLIES_PER_COMMENT_COUNT } from '../../../../Domains/threads/entities/DetailedThread'
 import { type ThreadWithUsernamePayload } from '../../../../Domains/threads/entities/ThreadWithUsername'
 
 describe('ThreadUseCase', () => {
@@ -48,23 +47,21 @@ describe('ThreadUseCase', () => {
     mockThreadRepository.getThreadWithUsernameById = jest.fn()
       .mockImplementation(async () => await Promise.resolve(thread))
 
-    const comments: CommentWithUsernamePayload[] = Array(4).fill(new CommentWithUsername({
+    const comments: Comments = Array(4).fill({
       id: 'comment-xyz',
       content: 'a comment',
       username: 'username',
-      createdAt: new Date('2022-03-03')
-    }).asObject)
-    mockCommentRepository.getCommentsWithUsernameByThreadId = jest.fn()
-      .mockImplementation(async () => await Promise.resolve(comments))
+      date: new Date('2022-03-03'),
+      replies: Array(2).fill(new ReplyWithUsername({
+        id: 'reply-xyz',
+        content: 'a reply',
+        username: 'username',
+        createdAt: new Date('2023-04-04')
+      }).asObject)
 
-    const replies: ReplyWithUsernamePayload[] = Array(2).fill(new ReplyWithUsername({
-      id: 'reply-xyz',
-      content: 'a reply',
-      username: 'username',
-      createdAt: new Date('2023-04-04')
-    }).asObject)
-    mockReplyRepository.getRepliesWithUsernameByCommentId = jest.fn()
-      .mockImplementation(async () => await Promise.resolve(replies))
+    })
+
+    mockCommentRepository.getCommentsByThreadId = jest.fn(async () => await Promise.resolve(comments))
 
     /** creating use case instance */
     const useCase = new GetThreadDetailUseCase(mockThreadRepository, mockCommentRepository, mockReplyRepository)
@@ -75,7 +72,6 @@ describe('ThreadUseCase', () => {
     // Assert
     expect(threadWithComments).toStrictEqual(expectedThreadWithComments.asObject)
     expect(mockThreadRepository.getThreadWithUsernameById).toBeCalledWith(threadId)
-    expect(mockCommentRepository.getCommentsWithUsernameByThreadId).toBeCalledWith(threadId, { limit: MAX_COMMENTS_COUNT })
-    expect(mockReplyRepository.getRepliesWithUsernameByCommentId).toBeCalledWith(commentId, { limit: MAX_REPLIES_PER_COMMENT_COUNT })
+    expect(mockCommentRepository.getCommentsByThreadId).toBeCalledWith(threadId, { limit: MAX_COMMENTS_COUNT }, { limit: MAX_REPLIES_PER_COMMENT_COUNT })
   })
 })
