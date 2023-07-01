@@ -383,6 +383,22 @@ describe('CommentRepository', () => {
       // Assert
       expect(comments).toEqual(expectedComments)
     })
+
+    it('should include comment(s) that has been soft deleted', async () => {
+      // Arrange
+      const sampleComment = await dataSource.instance.getRepository(Comment)
+        .findOneByOrFail({ thread: { id: threadId } })
+      const commentId = sampleComment.id
+      const repository = new CommentRepository(dataSource, () => 'id')
+      const initialLength = (await repository.getCommentsByThreadId(threadId)).length
+
+      // Action
+      await repository.deleteComment(commentId)
+      const comments = await repository.getCommentsByThreadId(threadId)
+
+      // Assert
+      expect(comments.length).toEqual(initialLength)
+    })
   })
 
   describe('getCommentsWithUsernameByThreadId function', () => {
