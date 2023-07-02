@@ -107,6 +107,10 @@ class CommentRepository extends CommentRepositoryBase {
         username: commentEntity.commenter.username
       }).asObject
 
+      // Strange behavior, the `take` expr applied to comments is not functioning properly when `addOrderBy` is used to sort replies
+      // Try add `.addOrderBy('reply.createdAt', 'ASC')` after `orderBy` was called
+      // Decided to sort replies using standard js sort array method.
+      // This implies that `getCommentsByThreadId` shall not be provided with large number to limit the replies returned
       const replies = commentEntity.replies
         .map(replyEntity => new ReplyWithUsername({
           id: replyEntity.id,
@@ -115,6 +119,7 @@ class CommentRepository extends CommentRepositoryBase {
           deletedAt: replyEntity.deletedAt,
           username: replyEntity.replier.username
         }).asObject)
+        .sort((lhs, rhs) => lhs.date.getTime() - rhs.date.getTime())
 
       return { ...comment, replies }
     })
