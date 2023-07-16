@@ -6,6 +6,9 @@ import AddedThread, { type AddedThreadPayload } from '../../../Domains/threads/e
 import NotFoundError from '../../../Commons/exceptions/NotFoundError'
 import { THREAD_NOT_FOUND } from '../../../Commons/exceptions/messages/ErrorMessages'
 import ThreadWithUsername, { type ThreadWithUsernamePayload } from '../../../Domains/threads/entities/ThreadWithUsername'
+import DetailedThread, { type DetailedThreadPayload } from '../../../Domains/threads/entities/DetailedThread'
+import { type PaginationOptions } from '../../../Commons/types/Types'
+import CommentWithUsername from '../../../Domains/comments/entities/CommentWithUsername'
 
 class ThreadRepository extends ThreadRepositoryBase {
   private readonly repository: Repository<Thread>
@@ -61,6 +64,61 @@ class ThreadRepository extends ThreadRepositoryBase {
     }
     const { id, title, body, createdAt, owner } = thread
     return new ThreadWithUsername({ id, title, body, date: createdAt, username: owner.username }).asObject
+  }
+
+  async getThreadCommentsById(threadId: string, commentsQueryOptions?: Partial<PaginationOptions>): Promise<DetailedThreadPayload> {
+    const commentsLimit = commentsQueryOptions?.limit ?? 10
+    const commentsOffset = commentsQueryOptions?.offset ?? 0
+
+    const threads = await this.repository
+      .createQueryBuilder('thread')
+      .withDeleted()
+      .leftJoinAndSelect('thread.owner', 'owner')
+      .leftJoinAndSelect('thread.comments', 'comment')
+      .leftJoinAndSelect('comment.commenter', 'commenter')
+      .select([
+        'thread.id',
+        'thread.title',
+        'thread.body',
+        'thread.createdAt',
+        'owner.username',
+        'comment.id',
+        'comment.content',
+        'comment.createdAt',
+        'comment.deletedAt',
+        'commenter.username'
+      ])
+      .where('thread.id = :threadId', { threadId })
+      .orderBy('comment.createdAt', 'ASC')
+      .limit(commentsLimit)
+      .offset(commentsOffset)
+      .getMany()
+
+    if (threads.length === 0) {
+      throw new NotFoundError(THREAD_NOT_FOUND)
+    }
+
+    const comments = threads
+      .flatMap(t => t.comments)
+      .map(c => new CommentWithUsername({
+        id: c.id,
+        content: c.content,
+        createdAt: c.createdAt,
+        deletedAt: c.deletedAt,
+        username: c.commenter.username
+      }).asObject)
+      .map(c => ({ ...c, replies: [] }))
+
+    const { id, title, body, createdAt, owner } = threads[0]
+    const thread = new ThreadWithUsername({
+      id,
+      title,
+      body,
+      date: createdAt,
+      username: owner.username
+    }).asObject
+
+    return new DetailedThread({ ...thread, comments }).asObject
   }
 }
 
