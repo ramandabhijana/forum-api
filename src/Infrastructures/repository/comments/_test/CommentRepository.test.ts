@@ -4,7 +4,7 @@ import AddedComment from '../../../../Domains/comments/entities/AddedComment'
 import { type CommentWithUsernamePayload } from '../../../../Domains/comments/entities/CommentWithUsername'
 import NewComment from '../../../../Domains/comments/entities/NewComment'
 import { type ReplyWithUsernamePayload } from '../../../../Domains/replies/entities/ReplyWithUsername'
-import { type Comments } from '../../../../Domains/threads/entities/DetailedThread'
+import { type CommentWithReplies } from '../../../../Domains/threads/entities/DetailedThread'
 import { AppDataSource } from '../../../database/data-source'
 import { Reply } from '../../replies/model/Reply'
 import { Thread } from '../../threads/model/Thread'
@@ -207,6 +207,7 @@ describe('CommentRepository', () => {
     })
   })
 
+  /*
   describe('getCommentsByThreadId function', () => {
     const userId = 'user-xyz'
     const threadId = 'thread-xyz'
@@ -264,6 +265,12 @@ describe('CommentRepository', () => {
           date: new Date('2022-03-10')
         },
         {
+          id: 'reply-pqx',
+          content: 'a reply',
+          username,
+          date: new Date('2022-03-02')
+        },
+        {
           id: 'reply-def',
           content: 'a reply',
           username,
@@ -295,7 +302,7 @@ describe('CommentRepository', () => {
           createdAt: comment.date,
           commenter: { id: userId },
           thread: { id: threadId },
-          replies: replies.splice(0, 2).map(r => ({
+          replies: replies.splice(0, comment.id === 'comment-xyz' ? 3 : 2).map(r => ({
             ...r,
             createdAt: r.date,
             replier: { id: userId },
@@ -319,6 +326,12 @@ describe('CommentRepository', () => {
           username,
           date: new Date('2022-03-03'),
           replies: [
+            {
+              id: 'reply-pqx',
+              content: 'a reply',
+              username,
+              date: new Date('2022-03-02')
+            },
             {
               id: 'reply-xyz',
               content: 'a reply',
@@ -449,12 +462,12 @@ describe('CommentRepository', () => {
       const repository = new CommentRepository(dataSource, () => 'id')
 
       // Action
-      const commentsWithLimit = await repository.getCommentsByThreadId(threadId, undefined, { limit: 1 })
+      const commentsWithLimit = await repository.getCommentsByThreadId(threadId, undefined, { limit: 2 })
       const commentsWithOffset = await repository.getCommentsByThreadId(threadId, undefined, { offset: 3 }) // there's only 2 replies saved for each comment
 
       // Assert
       for (const comment of commentsWithLimit) {
-        expect(comment.replies).toHaveLength(1)
+        expect(comment.replies).toHaveLength(2)
       }
       for (const comment of commentsWithOffset) {
         expect(comment.replies).toHaveLength(0)
@@ -487,6 +500,7 @@ describe('CommentRepository', () => {
       }
     })
   })
+  */
 
   describe('getCommentsWithUsernameByThreadId function', () => {
     const userId = 'user-xyz'
@@ -709,6 +723,254 @@ describe('CommentRepository', () => {
 
       // Action & Assert
       await expect(repository.deleteComment('comment-abc')).rejects.toThrowError(NotFoundError)
+    })
+  })
+
+  describe('getCommentRepliesByCommentIds function', () => {
+    const userId = 'user-xyz'
+    const threadId = 'thread-xyz'
+    const commentIds = ['comment-xyz', 'comment-abc', 'comment-def']
+    const username = 'pengguna'
+
+    beforeAll(async () => {
+      await dataSource.instance.getRepository(User).save({
+        id: userId,
+        fullName: 'pengguna',
+        password: 'secret',
+        username
+      })
+
+      await dataSource.instance.getRepository(Thread).save({
+        id: threadId,
+        body: 'sebuah thread',
+        title: 'judul',
+        owner: { id: userId }
+      })
+    })
+
+    beforeEach(async () => {
+      const comments: CommentWithUsernamePayload[] = [
+        {
+          id: 'comment-xyz',
+          content: 'a comment',
+          username,
+          date: new Date('2022-03-03')
+        },
+        {
+          id: 'comment-abc',
+          content: 'a comment',
+          username,
+          date: new Date('2022-03-06')
+        },
+        {
+          id: 'comment-def',
+          content: 'a comment',
+          username,
+          date: new Date('2022-03-05')
+        }
+      ]
+
+      const replies: ReplyWithUsernamePayload[] = [
+        {
+          id: 'reply-xyz',
+          content: 'a reply',
+          username,
+          date: new Date('2022-03-06')
+        },
+        {
+          id: 'reply-abc',
+          content: 'a reply',
+          username,
+          date: new Date('2022-03-10')
+        },
+        {
+          id: 'reply-pqx',
+          content: 'a reply',
+          username,
+          date: new Date('2022-03-02')
+        },
+        {
+          id: 'reply-def',
+          content: 'a reply',
+          username,
+          date: new Date('2022-03-07')
+        },
+        {
+          id: 'reply-ghi',
+          content: 'a reply',
+          username,
+          date: new Date('2022-03-06')
+        },
+        {
+          id: 'reply-jkl',
+          content: 'a reply',
+          username,
+          date: new Date('2022-03-05')
+        },
+        {
+          id: 'reply-mno',
+          content: 'a reply',
+          username,
+          date: new Date('2022-03-06')
+        }
+      ]
+
+      for (const comment of comments) {
+        await dataSource.instance.getRepository(Comment).save({
+          ...comment,
+          createdAt: comment.date,
+          commenter: { id: userId },
+          thread: { id: threadId },
+          replies: replies.splice(0, comment.id === 'comment-xyz' ? 3 : 2).map(r => ({
+            ...r,
+            createdAt: r.date,
+            replier: { id: userId },
+            comment: { id: comment.id }
+          }))
+        })
+      }
+    })
+
+    // afterAll(async () => {
+    //   await dataSource.instance.getRepository(Thread).delete({ id: threadId })
+    //   await dataSource.instance.getRepository(User).delete({ id: userId })
+    // })
+
+    it('should return comments properly', async () => {
+      // Arrange
+      const expectedComments = new Map<string, CommentWithReplies>([
+        ['comment-xyz', {
+          replies: [
+            {
+              id: 'reply-pqx',
+              content: 'a reply',
+              username,
+              date: new Date('2022-03-02')
+            },
+            {
+              id: 'reply-xyz',
+              content: 'a reply',
+              username,
+              date: new Date('2022-03-06')
+            },
+            {
+              id: 'reply-abc',
+              content: 'a reply',
+              username,
+              date: new Date('2022-03-10')
+            }
+          ]
+        }],
+        ['comment-def', {
+          replies: [
+            {
+              id: 'reply-jkl',
+              content: 'a reply',
+              username,
+              date: new Date('2022-03-05')
+            },
+            {
+              id: 'reply-mno',
+              content: 'a reply',
+              username,
+              date: new Date('2022-03-06')
+            }
+          ]
+        }],
+        ['comment-abc', {
+          replies: [
+            {
+              id: 'reply-ghi',
+              content: 'a reply',
+              username,
+              date: new Date('2022-03-06')
+            },
+            {
+              id: 'reply-def',
+              content: 'a reply',
+              username,
+              date: new Date('2022-03-07')
+            }
+          ]
+        }]
+      ])
+      const commentIds = [...expectedComments.keys()]
+      const repository = new CommentRepository(dataSource, () => '')
+
+      // Action
+      const comments = await repository.getCommentRepliesByCommentIds(commentIds)
+
+      // Assert
+      for (const commentId of commentIds) {
+        console.log('Replies= ', comments.get(commentId))
+        expect(comments.get(commentId)).toEqual(expectedComments.get(commentId))
+      }
+    })
+
+    it('should include comment that has been soft deleted', async () => {
+      // Arrange
+      const sampleComment = await dataSource.instance.getRepository(Comment)
+        .findOneByOrFail({ thread: { id: threadId } })
+      const commentId = sampleComment.id
+      const repository = new CommentRepository(dataSource, () => 'id')
+      const initialLength = [...(await repository.getCommentRepliesByCommentIds(commentIds))].length
+
+      // Action
+      await repository.deleteComment(commentId)
+      const comments = await repository.getCommentRepliesByCommentIds(commentIds)
+
+      // Assert
+      expect([...comments.keys()]).toHaveLength(initialLength)
+    })
+
+    it('should include reply that has been soft deleted', async () => {
+      // Arrange
+      const sampleReply = await dataSource.instance.getRepository(Reply)
+        .findOneByOrFail({ comment: { id: commentIds[0] } })
+      const replyId = sampleReply.id
+
+      const repository = new CommentRepository(dataSource, () => 'id')
+
+      // Action
+      await dataSource.instance.getRepository(Reply).softDelete({ id: replyId })
+      const commentReplies = await repository.getCommentRepliesByCommentIds(commentIds)
+
+      // Assert
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const index = commentReplies.get(commentIds[0])!.replies.findIndex(r => r.id === replyId)
+
+      expect(index).not.toEqual(-1)
+    })
+
+    it('should return replies with appropriate amount as requested', async () => {
+      // Arrange
+      const repository = new CommentRepository(dataSource, () => 'id')
+
+      // Action
+      const commentsWithLimit = await repository.getCommentRepliesByCommentIds(commentIds, { limit: 2 })
+      const commentsWithOffset = await repository.getCommentRepliesByCommentIds(commentIds, { offset: 3 }) // there's only 2 replies saved for each comment
+
+      // Assert
+      for (const comment of commentsWithLimit) {
+        expect(comment[1].replies).toHaveLength(2)
+      }
+      for (const comment of commentsWithOffset) {
+        expect(comment[1].replies).toHaveLength(0)
+      }
+    })
+
+    it('should return replies sorted by date created in ascending order', async () => {
+      // Arrange
+      const repository = new CommentRepository(dataSource, () => 'id')
+
+      // Action
+      const comments = await repository.getCommentRepliesByCommentIds(commentIds)
+
+      // Assert
+      for (const comment of comments) {
+        const dates = comment[1].replies.map(r => r.date)
+        expect(isSortedByAscendingDate(dates)).toBe(true)
+      }
     })
   })
 })

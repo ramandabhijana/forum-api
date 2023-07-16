@@ -8,7 +8,7 @@ import { COMMENT_NOT_FOUND, COMMENT_OWNER_NOT_AUTHORIZED } from '../../../Common
 import AuthorizationError from '../../../Commons/exceptions/AuthorizationError'
 import { type PaginationOptions } from '../../../Commons/types/Types'
 import CommentWithUsername, { type CommentWithUsernamePayload } from '../../../Domains/comments/entities/CommentWithUsername'
-import { type Comments } from '../../../Domains/threads/entities/DetailedThread'
+import { type CommentWithReplies, type Comments } from '../../../Domains/threads/entities/DetailedThread'
 import { Reply } from '../replies/model/Reply'
 import ReplyWithUsername from '../../../Domains/replies/entities/ReplyWithUsername'
 
@@ -162,6 +162,52 @@ class CommentRepository extends CommentRepositoryBase {
     if (result.affected === 0) {
       throw new NotFoundError(COMMENT_NOT_FOUND)
     }
+  }
+
+  async getCommentRepliesByCommentIds(
+    commentIds: string[],
+    repliesQueryOptions?: Partial<PaginationOptions>
+  ): Promise<Map<string, CommentWithReplies>> {
+    const repliesLimit = repliesQueryOptions?.limit ?? 10
+    const repliesOffset = repliesQueryOptions?.offset ?? 0
+
+    const subQuery = this.replyRepository
+      .createQueryBuilder('reply')
+      .withDeleted()
+      .select('reply.id')
+      .where('reply.comment = comment.id')
+      .skip(repliesOffset)
+      .take(repliesLimit)
+      .getQuery()
+
+    const comments: Comment[] = await this.repository.createQueryBuilder('comment')
+      .withDeleted()
+      .innerJoinAndSelect('comment.replies', 'reply', `reply.id IN (${subQuery})`)
+      .leftJoinAndSelect('reply.replier', 'replier')
+      .select([
+        'comment.id',
+        'reply.id',
+        'reply.content',
+        'reply.createdAt',
+        'reply.deletedAt',
+        'replier.username'
+      ])
+      .where('comment.id = ANY (:commentIds)', { commentIds })
+      .orderBy('reply.createdAt', 'ASC')
+      .getMany()
+
+    return comments.reduce((map, comment) => {
+      const replies = comment.replies
+        .map(r => new ReplyWithUsername({
+          id: r.id,
+          content: r.content,
+          createdAt: r.createdAt,
+          deletedAt: r.deletedAt,
+          username: r.replier.username
+        }).asObject)
+      map.set(comment.id, { replies })
+      return map
+    }, new Map<string, CommentWithReplies>())
   }
 }
 
