@@ -1,26 +1,32 @@
 import type CommentRepositoryBase from '../../../Domains/comments/CommentRepositoryBase'
-import type ReplyRepositoryBase from '../../../Domains/replies/ReplyRepositoryBase'
 import type ThreadRepositoryBase from '../../../Domains/threads/ThreadRepositoryBase'
-import DetailedThread, { MAX_COMMENTS_COUNT, MAX_REPLIES_PER_COMMENT_COUNT, type DetailedThreadPayload } from '../../../Domains/threads/entities/DetailedThread'
+import { MAX_COMMENTS_COUNT, MAX_REPLIES_PER_COMMENT_COUNT, type DetailedThreadPayload } from '../../../Domains/threads/entities/DetailedThread'
 import { UseCaseBase } from '../UseCaseBase'
 
 class GetThreadDetailUseCase extends UseCaseBase<string, DetailedThreadPayload> {
   constructor(
     private readonly threadRepository: ThreadRepositoryBase,
-    private readonly commentRepository: CommentRepositoryBase,
-    private readonly replyRepository: ReplyRepositoryBase
+    private readonly commentRepository: CommentRepositoryBase
   ) {
     super()
   }
 
   async execute(payload: string): Promise<DetailedThreadPayload> {
     await this.threadRepository.verifyThreadExists(payload)
+    const thread = await this.threadRepository.getThreadCommentsById(payload, { limit: MAX_COMMENTS_COUNT })
 
-    const threadPromise = this.threadRepository.getThreadWithUsernameById(payload)
-    const commentsPromise = this.commentRepository.getCommentsByThreadId(payload, { limit: MAX_COMMENTS_COUNT }, { limit: MAX_REPLIES_PER_COMMENT_COUNT })
-    const [thread, comments] = await Promise.all([threadPromise, commentsPromise])
+    const commentIds = thread.comments.map(comment => comment.id)
+    const commentIdAndReplies = await this.commentRepository.getCommentRepliesByCommentIds(
+      commentIds,
+      { limit: MAX_REPLIES_PER_COMMENT_COUNT }
+    )
 
-    return new DetailedThread({ ...thread, comments }).asObject
+    for (const [commentId, replies] of commentIdAndReplies) {
+      const index = thread.comments.findIndex(c => c.id === commentId)
+      thread.comments[index].replies = replies.replies
+    }
+
+    return thread
   }
 }
 
