@@ -43,7 +43,7 @@ class DetailedThread extends DomainEntity<DetailedThreadPayload> {
   protected shouldTranslateErrorToClientError(): boolean { return false }
 }
 
-interface CommentWithReplies {
+export interface CommentWithReplies {
   replies: ReplyWithUsernamePayload[]
 }
 
