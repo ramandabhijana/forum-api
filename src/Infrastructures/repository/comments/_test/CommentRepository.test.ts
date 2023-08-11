@@ -436,7 +436,6 @@ describe('CommentRepository', () => {
 
       // Assert
       for (const commentId of commentIds) {
-        console.log('Replies= ', comments.get(commentId))
         expect(comments.get(commentId)).toEqual(expectedComments.get(commentId))
       }
     })

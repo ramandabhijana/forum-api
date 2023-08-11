@@ -7,7 +7,7 @@
     "lint": "eslint ./src",
     "dev": "nodemon",
     "build": "tsc",
-    "test": "jest --runInBand --coverage",
+    "test": "jest --runInBand --coverage --detectOpenHandles",
     "test:watch": "jest --watchAll --coverage --setupFiles"
   },
   "keywords": [],
