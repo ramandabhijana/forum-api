@@ -7,10 +7,13 @@ import NotFoundError from '../../../Commons/exceptions/NotFoundError'
 import { COMMENT_NOT_FOUND, COMMENT_OWNER_NOT_AUTHORIZED } from '../../../Commons/exceptions/messages/ErrorMessages'
 import AuthorizationError from '../../../Commons/exceptions/AuthorizationError'
 import { type PaginationOptions } from '../../../Commons/types/Types'
-import CommentWithUsername, { type CommentWithUsernamePayload } from '../../../Domains/comments/entities/CommentWithUsername'
+import { type CommentWithReplies } from '../../../Domains/threads/entities/DetailedThread'
+import { Reply } from '../replies/model/Reply'
+import ReplyWithUsername from '../../../Domains/replies/entities/ReplyWithUsername'
 
 class CommentRepository extends CommentRepositoryBase {
   private readonly repository: Repository<Comment>
+  private readonly replyRepository: Repository<Reply>
 
   constructor(
     dataSource: AppDataSource,
@@ -18,6 +21,7 @@ class CommentRepository extends CommentRepositoryBase {
   ) {
     super()
     this.repository = dataSource.instance.getRepository(Comment)
+    this.replyRepository = dataSource.instance.getRepository(Reply)
   }
 
   async addComment(content: string, threadId: string, owner: string): Promise<AddedCommentPayload> {
@@ -56,43 +60,57 @@ class CommentRepository extends CommentRepositoryBase {
     }
   }
 
-  async getCommentsWithUsernameByThreadId(threadId: string, options?: Partial<PaginationOptions>): Promise<CommentWithUsernamePayload[]> {
-    const limit = options?.limit ?? 10
-    const offset = options?.offset ?? 0
-
-    const comments = await this.repository
-      .createQueryBuilder('comment')
-      .leftJoin('comment.commenter', 'commenter')
-      .select([
-        'comment.id',
-        'comment.content',
-        'comment.createdAt',
-        'comment.deletedAt',
-        'commenter.username'
-      ])
-      .withDeleted()
-      .where('comment.thread_id = :threadId', { threadId })
-      .orderBy('comment.createdAt', 'ASC')
-      .skip(offset)
-      .take(limit)
-      .getMany()
-
-    return comments.map(comment =>
-      new CommentWithUsername({
-        id: comment.id,
-        content: comment.content,
-        createdAt: comment.createdAt,
-        deletedAt: comment.deletedAt,
-        username: comment.commenter.username
-      }).asObject
-    )
-  }
-
   async deleteComment(commentId: string): Promise<void> {
     const result = await this.repository.softDelete({ id: commentId })
     if (result.affected === 0) {
       throw new NotFoundError(COMMENT_NOT_FOUND)
     }
+  }
+
+  async getCommentRepliesByCommentIds(
+    commentIds: string[],
+    repliesQueryOptions?: Partial<PaginationOptions>
+  ): Promise<Map<string, CommentWithReplies>> {
+    const repliesLimit = repliesQueryOptions?.limit ?? 10
+    const repliesOffset = repliesQueryOptions?.offset ?? 0
+
+    const subQuery = this.replyRepository
+      .createQueryBuilder('reply')
+      .withDeleted()
+      .select('reply.id')
+      .where('reply.comment = comment.id')
+      .skip(repliesOffset)
+      .take(repliesLimit)
+      .getQuery()
+
+    const comments: Comment[] = await this.repository.createQueryBuilder('comment')
+      .withDeleted()
+      .innerJoinAndSelect('comment.replies', 'reply', `reply.id IN (${subQuery})`)
+      .leftJoinAndSelect('reply.replier', 'replier')
+      .select([
+        'comment.id',
+        'reply.id',
+        'reply.content',
+        'reply.createdAt',
+        'reply.deletedAt',
+        'replier.username'
+      ])
+      .where('comment.id = ANY (:commentIds)', { commentIds })
+      .orderBy('reply.createdAt', 'ASC')
+      .getMany()
+
+    return comments.reduce((map, comment) => {
+      const replies = comment.replies
+        .map(r => new ReplyWithUsername({
+          id: r.id,
+          content: r.content,
+          createdAt: r.createdAt,
+          deletedAt: r.deletedAt,
+          username: r.replier.username
+        }).asObject)
+      map.set(comment.id, { replies })
+      return map
+    }, new Map<string, CommentWithReplies>())
   }
 }
 
