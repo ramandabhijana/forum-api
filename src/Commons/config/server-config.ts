@@ -55,6 +55,9 @@ export class Config {
       case 'test':
         dotenv.config({ path: './src/Commons/config/.test.env' })
         break
+      case 'prod':
+        dotenv.config({ path: './src/Commons/config/.prod.env' })
+        break
       default:
         dotenv.config({ path: './src/Commons/config/.local.env' })
         break

@@ -23,6 +23,8 @@ class DetailedThread extends DomainEntity<DetailedThreadPayload> {
   get username(): string { return this.payload.username }
   get comments(): Comments { return this.payload.comments }
 
+  set comments(v: Comments) { this.payload.comments = v }
+
   protected get entityName(): string {
     return DetailedThread.name
   }
@@ -41,7 +43,7 @@ class DetailedThread extends DomainEntity<DetailedThreadPayload> {
   protected shouldTranslateErrorToClientError(): boolean { return false }
 }
 
-interface CommentWithReplies {
+export interface CommentWithReplies {
   replies: ReplyWithUsernamePayload[]
 }
 

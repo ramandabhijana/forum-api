@@ -42,6 +42,6 @@ export class Comment {
   @Index()
   thread!: Thread
 
-  @OneToMany(() => Reply, (reply) => reply.comment)
+  @OneToMany(() => Reply, (reply) => reply.comment, { cascade: ['insert'] })
   replies!: Reply[]
 }

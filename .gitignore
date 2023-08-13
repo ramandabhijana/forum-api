@@ -1,2 +1,6 @@
 node_modules
 .env
+coverage
+src/Commons/config/.local.env
+src/Commons/config/.test.env
+src/Commons/config/.prod.env
