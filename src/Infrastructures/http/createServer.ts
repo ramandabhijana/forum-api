@@ -32,6 +32,14 @@ export const createServer = async function (container: Container): Promise<Serve
   const dataSource: AppDataSource = container.getInstance(AppDataSource.name)
   await dataSource.initialize()
 
+  server.route({
+    method: 'GET',
+    path: '/',
+    handler: (_req, h) => {
+      return h.response('ok').code(200)
+    }
+  })
+
   await server.register([
     {
       plugin: users,
