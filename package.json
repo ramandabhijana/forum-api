@@ -8,7 +8,8 @@
     "dev": "nodemon",
     "build": "tsc",
     "test": "jest --runInBand --coverage --detectOpenHandles",
-    "test:watch": "jest --watchAll --coverage --setupFiles"
+    "test:watch": "jest --watchAll --coverage --setupFiles",
+    "start-prod": "cross-env NODE_ENV=prod pm2 start ./dist/app.js --name forum-api-prod"
   },
   "keywords": [],
   "author": "",
