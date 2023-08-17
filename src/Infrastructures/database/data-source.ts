@@ -21,7 +21,7 @@ export class AppDataSource {
       database: config.dbName,
       synchronize: true, // don't use in prod
       logging: false,
-      ssl: {
+      ssl: Config.instance.nodeEnv === 'prod' && {
         rejectUnauthorized: false
       },
       entities: [User, Authentication, Thread, Comment, Reply],
