@@ -565,6 +565,47 @@ describe('CommentRepository', () => {
       expect(liked).toStrictEqual(false)
     })
   })
+
+  describe('likeComment function', () => {
+    it('should add a new liker', async () => {
+      // Arrange
+      const commentId = 'comment-like123'
+      const userId = 'user-like123'
+      const threadId = 'thread-like123'
+      await dataSource.instance.getRepository(User).save({
+        id: userId,
+        fullName: 'pengguna baru',
+        password: 'secret',
+        username: 'programmer'
+      })
+      await dataSource.instance.getRepository(Thread).save({
+        id: threadId,
+        title: 'sebuah thread',
+        body: 'badan',
+        owner: { id: userId }
+      })
+      await dataSource.instance.getRepository(Comment).save({
+        id: commentId,
+        content: 'komentar',
+        commenter: { id: userId },
+        thread: { id: threadId }
+      })
+
+      // Action
+      const repository = new CommentRepository(dataSource, () => '')
+      await repository.likeComment(commentId, userId)
+
+      // Assert
+      const likedComment = await dataSource.instance.getRepository(Comment).findOne({
+        relations: { likers: true },
+        where: {
+          id: commentId,
+          likers: { id: userId }
+        }
+      })
+      expect(likedComment).toBeTruthy()
+    })
+  })
 })
 
 // Test helper function, consider to move it to a separate file
