@@ -606,6 +606,48 @@ describe('CommentRepository', () => {
       expect(likedComment).toBeTruthy()
     })
   })
+
+  describe('dislikeComment function', () => {
+    it('should remove the liker', async () => {
+      // Arrange
+      const commentId = 'comment-like123'
+      const userId = 'user-like123'
+      const threadId = 'thread-like123'
+      await dataSource.instance.getRepository(User).save({
+        id: userId,
+        fullName: 'pengguna baru',
+        password: 'secret',
+        username: 'programmer'
+      })
+      await dataSource.instance.getRepository(Thread).save({
+        id: threadId,
+        title: 'sebuah thread',
+        body: 'badan',
+        owner: { id: userId }
+      })
+      await dataSource.instance.getRepository(Comment).save({
+        id: commentId,
+        content: 'komentar',
+        commenter: { id: userId },
+        thread: { id: threadId },
+        likers: [{ id: userId }]
+      })
+
+      // Action
+      const repository = new CommentRepository(dataSource, () => '')
+      await repository.dislikeComment(commentId, userId)
+
+      // Assert
+      const likedComment = await dataSource.instance.getRepository(Comment).findOne({
+        relations: { likers: true },
+        where: {
+          id: commentId,
+          likers: { id: userId }
+        }
+      })
+      expect(likedComment).toBeFalsy()
+    })
+  })
 })
 
 // Test helper function, consider to move it to a separate file
