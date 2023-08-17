@@ -40,7 +40,7 @@ describe('LikeCommentUseCase', () => {
     expect(mockThreadRepository.verifyThreadExists).toBeCalledWith(threadId)
     expect(mockCommentRepository.verifyCommentExists).toBeCalledWith(commentId)
     expect(mockCommentRepository.isCommentLikedBy).toBeCalledWith(userId, commentId)
-    expect(mockCommentRepository.likeComment).toBeCalledWith(commentId)
+    expect(mockCommentRepository.likeComment).toBeCalledWith(commentId, userId)
   })
 
   it('should dislike comment action properly', async () => {
@@ -71,6 +71,6 @@ describe('LikeCommentUseCase', () => {
     expect(mockThreadRepository.verifyThreadExists).toBeCalledWith(threadId)
     expect(mockCommentRepository.verifyCommentExists).toBeCalledWith(commentId)
     expect(mockCommentRepository.isCommentLikedBy).toBeCalledWith(userId, commentId)
-    expect(mockCommentRepository.dislikeComment).toBeCalledWith(commentId)
+    expect(mockCommentRepository.dislikeComment).toBeCalledWith(commentId, userId)
   })
 })

@@ -22,9 +22,9 @@ class LikeCommentUseCase extends UseCaseBase<CommentInteractionPayload, void> {
     const isLiked = await this.commentRepository.isCommentLikedBy(userId, commentId)
 
     if (isLiked) {
-      await this.commentRepository.dislikeComment(commentId)
+      await this.commentRepository.dislikeComment(commentId, userId)
     } else {
-      await this.commentRepository.likeComment(commentId)
+      await this.commentRepository.likeComment(commentId, userId)
     }
   }
 }
