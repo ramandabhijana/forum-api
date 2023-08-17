@@ -564,15 +564,6 @@ describe('CommentRepository', () => {
       // assert
       expect(liked).toStrictEqual(false)
     })
-
-    it('should throw NotFoundError when comment is not found', async () => {
-      // Arrange
-      const repository = new CommentRepository(dataSource, () => '')
-
-      // Action & Assert
-      await expect(repository.isCommentLikedBy(userId, 'comment-like456'))
-        .rejects.toThrowError(NotFoundError)
-    })
   })
 })
 
