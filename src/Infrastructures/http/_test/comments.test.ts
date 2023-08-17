@@ -364,4 +364,132 @@ describe('/threads/{threadId}/comments endpoint', () => {
       expect(responseJson.status).toEqual('success')
     })
   })
+
+  describe('When PUT /{commentId}/likes', () => {
+    let threadId: string
+    let commentId: string
+    let headers: Record<string, any>
+
+    beforeAll(async () => {
+      const server = await createServer(container)
+
+      /** add user */
+      const payload = {
+        username: 'user_test',
+        password: 'secret'
+      }
+      await server.inject({
+        method: 'POST',
+        url: '/users',
+        payload: {
+          ...payload,
+          fullname: 'Pengguna'
+        }
+      })
+
+      /** obtain the access token */
+      const loginResponse = await server.inject({
+        method: 'POST',
+        url: '/authentications',
+        payload
+      })
+      const loginResponseJson = JSON.parse(loginResponse.payload)
+
+      headers = {
+        Authorization: `Bearer ${loginResponseJson.data.accessToken as string}`
+      }
+
+      /** add thread */
+      const threadPayload = {
+        title: 'Title of thread',
+        body: 'Body of thread'
+      }
+      const addedThreadResponse = await server.inject({
+        method: 'POST',
+        url: '/threads',
+        payload: threadPayload,
+        headers
+      })
+      const addedThreadResponseJson = JSON.parse(addedThreadResponse.payload)
+
+      threadId = addedThreadResponseJson.data.addedThread.id
+
+      /** add comment */
+      const commentPayload = {
+        content: 'A comment'
+      }
+      const commentResponse = await server.inject({
+        method: 'POST',
+        url: `/threads/${threadId}/comments`,
+        payload: commentPayload,
+        headers
+      })
+      const commentResponseJson = JSON.parse(commentResponse.payload)
+
+      commentId = commentResponseJson.data.addedComment.id
+    }, 10_000)
+
+    it('should return 401 if authentication is missing', async () => {
+      // Arrange
+      const server = await createServer(container)
+
+      // Action
+      const response = await server.inject({
+        method: 'PUT',
+        url: `/threads/${threadId}/comments/${commentId}/likes`
+      })
+
+      // Assert
+      expect(response.statusCode).toEqual(401)
+    })
+
+    it('should return 404 if thread does not exist', async () => {
+      // Arrange
+      const server = await createServer(container)
+
+      // Action
+      const response = await server.inject({
+        method: 'PUT',
+        url: `/threads/thread-404notFound/comments/${commentId}/likes`,
+        headers
+      })
+
+      // Assert
+      expect(response.statusCode).toEqual(404)
+      expect(JSON.parse(response.payload).message).toEqual(THREAD_NOT_FOUND)
+    })
+
+    it('should return 404 if comment does not exist', async () => {
+      // Arrange
+      const server = await createServer(container)
+
+      // Action
+      const response = await server.inject({
+        method: 'PUT',
+        url: `/threads/${threadId}/comments/comment-xyz/likes`,
+        headers
+      })
+
+      // Assert
+      expect(response.statusCode).toEqual(404)
+      expect(JSON.parse(response.payload).message).toEqual(COMMENT_NOT_FOUND)
+    })
+
+    it('should return 200 and success status', async () => {
+      // Arrange
+      const server = await createServer(container)
+
+      // Action
+      const response = await server.inject({
+        method: 'PUT',
+        url: `/threads/${threadId}/comments/${commentId}/likes`,
+        headers
+      })
+
+      // Assert
+      const responseJson = JSON.parse(response.payload)
+      expect(response.statusCode).toEqual(200)
+      expect(responseJson.status).toEqual('success')
+    })
+  })
 })
