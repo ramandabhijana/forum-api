@@ -114,7 +114,15 @@ class CommentRepository extends CommentRepositoryBase {
   }
 
   async isCommentLikedBy(userId: string, commentId: string): Promise<boolean> {
-    throw new Error('Method not implemented.')
+    const comment = await this.repository.findOne({
+      relations: { likers: true },
+      where: {
+        id: commentId,
+        likers: { id: userId }
+      },
+      select: { id: true }
+    })
+    return comment !== null
   }
 
   async likeComment(commentId: string): Promise<void> {
