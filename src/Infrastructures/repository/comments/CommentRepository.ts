@@ -112,6 +112,18 @@ class CommentRepository extends CommentRepositoryBase {
       return map
     }, new Map<string, CommentWithReplies>())
   }
+
+  async isCommentLikedBy(userId: string, commentId: string): Promise<boolean> {
+    throw new Error('Method not implemented.')
+  }
+
+  async likeComment(commentId: string): Promise<void> {
+    throw new Error('Method not implemented.')
+  }
+
+  async dislikeComment(commentId: string): Promise<void> {
+    throw new Error('Method not implemented.')
+  }
 }
 
 export default CommentRepository
