@@ -506,6 +506,74 @@ describe('CommentRepository', () => {
       }
     })
   })
+
+  describe('isCommentLikedBy function', () => {
+    const commentId = 'comment-like123'
+    const userId = 'user-like123'
+    const threadId = 'thread-like123'
+
+    beforeEach(async () => {
+      await dataSource.instance.getRepository(User).save({
+        id: userId,
+        fullName: 'pengguna baru',
+        password: 'secret',
+        username: 'programmer'
+      })
+      await dataSource.instance.getRepository(Thread).save({
+        id: threadId,
+        title: 'sebuah thread',
+        body: 'badan',
+        owner: { id: userId }
+      })
+      await dataSource.instance.getRepository(Comment).save({
+        id: commentId,
+        content: 'komentar',
+        commenter: { id: userId },
+        thread: { id: threadId },
+        likers: [{ id: userId }]
+      })
+    })
+
+    it('should return true when comment is liked by a user', async () => {
+      // Arrange
+      const repository = new CommentRepository(dataSource, () => '')
+
+      // Action
+      const liked = await repository.isCommentLikedBy(userId, commentId)
+
+      // assert
+      expect(liked).toStrictEqual(true)
+    })
+
+    it('should return false when comment is not liked by a user', async () => {
+      // Arrange
+      const comment = await dataSource.instance.getRepository(Comment).findOneOrFail({
+        relations: { likers: true },
+        where: { id: commentId }
+      })
+      comment.likers = comment.likers.filter((liker) => {
+        return liker.id !== userId
+      })
+      await dataSource.instance.manager.save(comment)
+
+      const repository = new CommentRepository(dataSource, () => '')
+
+      // Action
+      const liked = await repository.isCommentLikedBy(userId, commentId)
+
+      // assert
+      expect(liked).toStrictEqual(false)
+    })
+
+    it('should throw NotFoundError when comment is not found', async () => {
+      // Arrange
+      const repository = new CommentRepository(dataSource, () => '')
+
+      // Action & Assert
+      await expect(repository.isCommentLikedBy(userId, 'comment-like456'))
+        .rejects.toThrowError(NotFoundError)
+    })
+  })
 })
 
 // Test helper function, consider to move it to a separate file
