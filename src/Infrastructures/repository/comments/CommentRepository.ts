@@ -133,8 +133,12 @@ class CommentRepository extends CommentRepositoryBase {
       .add(userId)
   }
 
-  async dislikeComment(commentId: string): Promise<void> {
-    throw new Error('Method not implemented.')
+  async dislikeComment(commentId: string, userId: string): Promise<void> {
+    await this.repository
+      .createQueryBuilder()
+      .relation(Comment, 'likers')
+      .of(commentId)
+      .remove(userId)
   }
 }
 
