@@ -8,6 +8,8 @@ abstract class CommentRepositoryBase {
   abstract verifyCommentOwner(commentId: string, owner: string): Promise<void>
   abstract getCommentRepliesByCommentIds(commentIds: string[], repliesQueryOptions?: Partial<PaginationOptions>): Promise<Map<string, CommentWithReplies>>
   abstract deleteComment(commentId: string): Promise<void>
+  abstract likeComment(commentId: string): Promise<void>
+  abstract dislikeComment(commentId: string): Promise<void>
 }
 
 export default CommentRepositoryBase
