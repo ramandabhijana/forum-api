@@ -1,5 +1,5 @@
 import DeleteCommentUseCase from '../DeleteCommentUseCase'
-import { type DeleteCommentPayload } from '../../../../Domains/comments/entities/DeleteComment'
+import { type CommentInteractionPayload } from '../../../../Domains/comments/entities/CommentInteraction'
 
 describe('DeleteCommentUseCase', () => {
   it('should orchestrate the delete comment action properly', async () => {
@@ -7,7 +7,7 @@ describe('DeleteCommentUseCase', () => {
     const threadId = 'thread-123'
     const commentId = 'comment-123'
     const userId = 'user-123'
-    const payload: DeleteCommentPayload = {
+    const payload: CommentInteractionPayload = {
       commentId,
       threadId,
       userId

@@ -1,9 +1,9 @@
 import type CommentRepositoryBase from '../../../Domains/comments/CommentRepositoryBase'
-import DeleteComment, { type DeleteCommentPayload } from '../../../Domains/comments/entities/DeleteComment'
+import CommentInteraction, { type CommentInteractionPayload } from '../../../Domains/comments/entities/CommentInteraction'
 import type ThreadRepositoryBase from '../../../Domains/threads/ThreadRepositoryBase'
 import { UseCaseBase } from '../UseCaseBase'
 
-class DeleteCommentUseCase extends UseCaseBase<DeleteCommentPayload, void> {
+class DeleteCommentUseCase extends UseCaseBase<CommentInteractionPayload, void> {
   constructor(
     private readonly threadRepository: ThreadRepositoryBase,
     private readonly commentRepository: CommentRepositoryBase
@@ -11,8 +11,8 @@ class DeleteCommentUseCase extends UseCaseBase<DeleteCommentPayload, void> {
     super()
   }
 
-  async execute(payload: DeleteCommentPayload): Promise<void> {
-    const { threadId, commentId, userId } = new DeleteComment(payload)
+  async execute(payload: CommentInteractionPayload): Promise<void> {
+    const { threadId, commentId, userId } = new CommentInteraction(payload)
 
     const verifyThreadExist = this.threadRepository.verifyThreadExists(threadId)
     const verifyCommentOwner = this.commentRepository.verifyCommentOwner(commentId, userId)

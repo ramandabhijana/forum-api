@@ -31,6 +31,7 @@ import LogoutUserUseCase from '../Applications/use_case/logout/LogoutUserUseCase
 import RefreshAuthenticationUseCase from '../Applications/use_case/refresh_authentication/RefreshAuthenticationUseCase'
 import DeleteCommentUseCase from '../Applications/use_case/delete_comment/DeleteCommentUseCase'
 import DeleteReplyUseCase from '../Applications/use_case/delete_reply/DeleteReplyUseCase'
+import LikeCommentUseCase from '../Applications/use_case/like_comment/LikeCommentUseCase'
 
 const container = createContainer()
 
@@ -220,6 +221,16 @@ container.register([
         { internal: ThreadRepositoryBase.name },
         { internal: CommentRepositoryBase.name },
         { internal: ReplyRepositoryBase.name }
+      ]
+    }
+  },
+  {
+    key: LikeCommentUseCase.name,
+    Class: LikeCommentUseCase,
+    parameter: {
+      dependencies: [
+        { internal: ThreadRepositoryBase.name },
+        { internal: CommentRepositoryBase.name }
       ]
     }
   }

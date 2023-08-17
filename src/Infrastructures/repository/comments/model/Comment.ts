@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/indent */
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, UpdateDateColumn } from 'typeorm'
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryColumn, UpdateDateColumn } from 'typeorm'
 import { User } from '../../users/model/User'
 import { Thread } from '../../threads/model/Thread'
 import { Reply } from '../../replies/model/Reply'
@@ -44,4 +44,8 @@ export class Comment {
 
   @OneToMany(() => Reply, (reply) => reply.comment, { cascade: ['insert'] })
   replies!: Reply[]
+
+  @ManyToMany(() => User)
+  @JoinTable()
+  likers!: User[]
 }

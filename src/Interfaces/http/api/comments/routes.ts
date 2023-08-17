@@ -13,6 +13,12 @@ const routes: (handler: CommentsHandler) => Hapi.ServerRoute[] = (handler) => ([
     path: '/threads/{threadId}/comments/{commentId}',
     handler: handler.deleteCommentHandler,
     options: { auth: 'forum_api_jwt' }
+  },
+  {
+    method: 'PUT',
+    path: '/threads/{threadId}/comments/{commentId}/likes',
+    handler: handler.likesCommentHandler,
+    options: { auth: 'forum_api_jwt' }
   }
 ])
 

@@ -7,6 +7,7 @@ import { type NewCommentPayload } from '../../../../Domains/comments/entities/Ne
 import { CREATED } from '../../constants/HttpStatusCode'
 import { SUCCESS_STATUS_RESPONSE } from '../../constants/HttpResponse'
 import DeleteCommentUseCase from '../../../../Applications/use_case/delete_comment/DeleteCommentUseCase'
+import LikeCommentUseCase from '../../../../Applications/use_case/like_comment/LikeCommentUseCase'
 
 type PostCommentBodyRequest = Pick<NewCommentPayload, 'content'>
 
@@ -41,6 +42,17 @@ class CommentsHandler {
     const commentId = request.params.commentId
 
     const useCase: DeleteCommentUseCase = this.container.getInstance(DeleteCommentUseCase.name)
+    await useCase.execute({ threadId, commentId, userId })
+
+    return h.response({ status: SUCCESS_STATUS_RESPONSE })
+  }
+
+  async likesCommentHandler(request: Request, h: ResponseToolkit): Promise<ResponseObject> {
+    const { id: userId } = request.auth.credentials as unknown as TokenPayload
+    const threadId = request.params.threadId
+    const commentId = request.params.commentId
+
+    const useCase: LikeCommentUseCase = this.container.getInstance(LikeCommentUseCase.name)
     await useCase.execute({ threadId, commentId, userId })
 
     return h.response({ status: SUCCESS_STATUS_RESPONSE })
