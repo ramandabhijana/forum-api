@@ -75,6 +75,7 @@ class ThreadRepository extends ThreadRepositoryBase {
       .withDeleted()
       .leftJoinAndSelect('thread.owner', 'owner')
       .leftJoinAndSelect('thread.comments', 'comment')
+      .loadRelationCountAndMap('comment.likeCount', 'comment.likers')
       .leftJoinAndSelect('comment.commenter', 'commenter')
       .select([
         'thread.id',
@@ -100,12 +101,13 @@ class ThreadRepository extends ThreadRepositoryBase {
 
     const comments = threads
       .flatMap(t => t.comments)
-      .map(c => new CommentWithUsername({
+      .map((c: any) => new CommentWithUsername({
         id: c.id,
         content: c.content,
         createdAt: c.createdAt,
         deletedAt: c.deletedAt,
-        username: c.commenter.username
+        username: c.commenter.username,
+        likeCount: c.likeCount
       }).asObject)
       .map(c => ({ ...c, replies: [] }))
 

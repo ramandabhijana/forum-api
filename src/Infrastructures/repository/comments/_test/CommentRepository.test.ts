@@ -288,19 +288,22 @@ describe('CommentRepository', () => {
           id: 'comment-xyz',
           content: 'a comment',
           username,
-          date: new Date('2022-03-03')
+          date: new Date('2022-03-03'),
+          likeCount: 0
         },
         {
           id: 'comment-abc',
           content: 'a comment',
           username,
-          date: new Date('2022-03-06')
+          date: new Date('2022-03-06'),
+          likeCount: 0
         },
         {
           id: 'comment-def',
           content: 'a comment',
           username,
-          date: new Date('2022-03-05')
+          date: new Date('2022-03-05'),
+          likeCount: 0
         }
       ]
 
@@ -364,11 +367,6 @@ describe('CommentRepository', () => {
         })
       }
     })
-
-    // afterAll(async () => {
-    //   await dataSource.instance.getRepository(Thread).delete({ id: threadId })
-    //   await dataSource.instance.getRepository(User).delete({ id: userId })
-    // })
 
     it('should return comments properly', async () => {
       // Arrange

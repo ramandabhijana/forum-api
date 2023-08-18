@@ -1,6 +1,6 @@
 import Joi from 'joi'
 import { DomainErrorTranslator } from '../Commons/exceptions/DomainErrorTranslator'
-import { DATA_TYPE_ARRAY_EXPECTED, DATA_TYPE_DATE_EXPECTED, DATA_TYPE_OBJECT_EXPECTED, DATA_TYPE_STRING_EXPECTED, ITEM_DATA_TYPE_MISMATCHED, MAX_LIMIT_CHAR, MAX_LIMIT_ITEM, MIN_LIMIT_CHAR, MISSING_REQUIRED_PROPERTY, STRING_EMPTY } from '../Commons/exceptions/consts/DomainErrorConsts'
+import { DATA_TYPE_ARRAY_EXPECTED, DATA_TYPE_DATE_EXPECTED, DATA_TYPE_NUMBER_EXPECTED, DATA_TYPE_OBJECT_EXPECTED, DATA_TYPE_STRING_EXPECTED, ITEM_DATA_TYPE_MISMATCHED, MAX_LIMIT_CHAR, MAX_LIMIT_ITEM, MIN_LIMIT_CHAR, MISSING_REQUIRED_PROPERTY, NUMBER_TYPE_INTEGER_EXPECTED, STRING_EMPTY } from '../Commons/exceptions/consts/DomainErrorConsts'
 
 abstract class DomainEntity<P> {
   constructor(protected readonly payload: P) {
@@ -10,6 +10,8 @@ abstract class DomainEntity<P> {
   private get payloadSchema(): Joi.ObjectSchema {
     return Joi.object(this.schema).messages({
       'string.base': `${this.entityName}.${DATA_TYPE_STRING_EXPECTED}.{{#label}}`,
+      'number.base': `${this.entityName}.${DATA_TYPE_NUMBER_EXPECTED}.{{#label}}`,
+      'number.integer': `${this.entityName}.${NUMBER_TYPE_INTEGER_EXPECTED}.{{#label}}`,
       'string.max': `${this.entityName}.${MAX_LIMIT_CHAR}.{{#label}}`,
       'string.min': `${this.entityName}.${MIN_LIMIT_CHAR}.{{#label}}`,
       'string.empty': `${this.entityName}.${STRING_EMPTY}.{{#label}}`,

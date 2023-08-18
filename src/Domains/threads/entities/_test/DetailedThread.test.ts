@@ -183,7 +183,8 @@ describe('a DetailedThread entity', () => {
         username: 'username',
         date: new Date(),
         content: 'a comment',
-        replies: []
+        replies: [],
+        likeCount: 0
       })),
       date: new Date(),
       title: 'thread title'
@@ -206,7 +207,8 @@ describe('a DetailedThread entity', () => {
           username: 'username',
           date: new Date(),
           content: 'a comment',
-          replies: []
+          replies: [],
+          likeCount: 0
         }
       ],
       date: new Date(),

@@ -23,7 +23,8 @@ describe('ThreadUseCase', () => {
           username: 'username',
           date: new Date('2023-04-04')
         }),
-        date: new Date('2022-03-03')
+        date: new Date('2022-03-03'),
+        likeCount: 0
       }]
     })
 
@@ -46,7 +47,8 @@ describe('ThreadUseCase', () => {
         content: 'a comment',
         username: 'username',
         replies: [],
-        date: new Date('2022-03-03')
+        date: new Date('2022-03-03'),
+        likeCount: 0
       }]
     }
     mockThreadRepository.getThreadCommentsById = jest.fn()

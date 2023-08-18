@@ -1,5 +1,5 @@
 import CommentWithUsername, { type ConstructorPayload } from '../CommentWithUsername'
-import { DATA_TYPE_DATE_EXPECTED, DATA_TYPE_STRING_EXPECTED, MISSING_REQUIRED_PROPERTY, STRING_EMPTY } from '../../../../Commons/exceptions/consts/DomainErrorConsts'
+import { DATA_TYPE_DATE_EXPECTED, DATA_TYPE_NUMBER_EXPECTED, DATA_TYPE_STRING_EXPECTED, MISSING_REQUIRED_PROPERTY, NUMBER_TYPE_INTEGER_EXPECTED, STRING_EMPTY } from '../../../../Commons/exceptions/consts/DomainErrorConsts'
 
 describe('a CommentWithUsername entity', () => {
   it('should throw an error when payload does not contain required property', () => {
@@ -7,22 +7,32 @@ describe('a CommentWithUsername entity', () => {
     const payload2: Omit<ConstructorPayload, 'id'> = {
       content: 'comment body',
       createdAt: new Date(),
-      username: 'username'
+      username: 'username',
+      likeCount: 0
     }
     const payload3: Omit<ConstructorPayload, 'content'> = {
       id: 'comment-123',
       username: 'username',
-      createdAt: new Date()
+      createdAt: new Date(),
+      likeCount: 0
     }
     const payload4: Omit<ConstructorPayload, 'createdAt'> = {
       id: 'comment-123',
       username: 'username',
-      content: 'comment body'
+      content: 'comment body',
+      likeCount: 0
     }
     const payload5: Omit<ConstructorPayload, 'username'> = {
       id: 'comment-123',
       createdAt: new Date(),
-      content: 'comment title'
+      content: 'comment title',
+      likeCount: 0
+    }
+    const payload6: Omit<ConstructorPayload, 'likeCount'> = {
+      id: 'comment-123',
+      createdAt: new Date(),
+      content: 'comment title',
+      username: 'user-123'
     }
 
     // Action and Assert
@@ -34,6 +44,8 @@ describe('a CommentWithUsername entity', () => {
       .toThrowError(`CommentWithUsername.${MISSING_REQUIRED_PROPERTY}."date"`)
     expect(() => new CommentWithUsername(payload5 as any))
       .toThrowError(`CommentWithUsername.${MISSING_REQUIRED_PROPERTY}."username"`)
+    expect(() => new CommentWithUsername(payload6 as any))
+      .toThrowError(`CommentWithUsername.${MISSING_REQUIRED_PROPERTY}."likeCount"`)
   })
 
   it('should throw an error when payload does not meet data type specification', () => {
@@ -43,7 +55,8 @@ describe('a CommentWithUsername entity', () => {
       username: 'username',
       content: 'comment body',
       createdAt: new Date(),
-      deletedAt: undefined
+      deletedAt: undefined,
+      likeCount: 0
     }
     const payload0: ConstructorPayload = {
       ...payload,
@@ -61,6 +74,14 @@ describe('a CommentWithUsername entity', () => {
       ...payload,
       createdAt: {}
     } as any
+    const payload4: ConstructorPayload = {
+      ...payload,
+      likeCount: '12f'
+    } as any
+    const payload5: ConstructorPayload = {
+      ...payload,
+      likeCount: 0.5
+    } as any
 
     // Action and Assert
     expect(() => new CommentWithUsername(payload0))
@@ -71,6 +92,10 @@ describe('a CommentWithUsername entity', () => {
       .toThrowError(`CommentWithUsername.${DATA_TYPE_STRING_EXPECTED}."content"`)
     expect(() => new CommentWithUsername(payload3))
       .toThrowError(`CommentWithUsername.${DATA_TYPE_DATE_EXPECTED}."date"`)
+    expect(() => new CommentWithUsername(payload4))
+      .toThrowError(`CommentWithUsername.${DATA_TYPE_NUMBER_EXPECTED}."likeCount"`)
+    expect(() => new CommentWithUsername(payload5))
+      .toThrowError(`CommentWithUsername.${NUMBER_TYPE_INTEGER_EXPECTED}."likeCount"`)
   })
 
   it('should throw an error when payload contains empty string value', () => {
@@ -80,7 +105,8 @@ describe('a CommentWithUsername entity', () => {
       username: 'username',
       createdAt: new Date(),
       content: 'comment content',
-      deletedAt: undefined
+      deletedAt: undefined,
+      likeCount: 0
     }
     const payload1: ConstructorPayload = {
       ...payload,
@@ -115,7 +141,8 @@ describe('a CommentWithUsername entity', () => {
         const tomorrow = new Date()
         tomorrow.setDate(new Date().getDate() + 1)
         return tomorrow
-      })()
+      })(),
+      likeCount: 0
     }
 
     // Action
@@ -134,7 +161,8 @@ describe('a CommentWithUsername entity', () => {
       id: 'comment-123',
       username: 'username',
       content: 'comment body',
-      createdAt: new Date()
+      createdAt: new Date(),
+      likeCount: 0
     }
 
     // Action
