@@ -7,6 +7,7 @@ export interface ConstructorPayload {
   createdAt: Date
   deletedAt?: Date
   username: string
+  likeCount: number
 }
 
 export interface CommentWithUsernamePayload {
@@ -14,6 +15,7 @@ export interface CommentWithUsernamePayload {
   content: string
   date: Date
   username: string
+  likeCount: number
 }
 
 class CommentWithUsername extends DomainEntity<CommentWithUsernamePayload> {
@@ -37,7 +39,8 @@ class CommentWithUsername extends DomainEntity<CommentWithUsernamePayload> {
       id: payload?.id,
       content,
       date: payload?.createdAt,
-      username: payload?.username
+      username: payload?.username,
+      likeCount: payload?.likeCount
     })
   }
 
@@ -46,7 +49,8 @@ class CommentWithUsername extends DomainEntity<CommentWithUsernamePayload> {
       id: Joi.string().required(),
       content: Joi.string().required(),
       date: Joi.date().iso().required(),
-      username: Joi.string().required()
+      username: Joi.string().required(),
+      likeCount: Joi.number().integer().required()
     }
   }
 
