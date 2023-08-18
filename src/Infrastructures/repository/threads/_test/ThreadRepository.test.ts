@@ -285,7 +285,7 @@ describe('ThreadRepository', () => {
       const repository = new ThreadRepository(dataSource, () => { return 'id' })
 
       // Action & Assert
-      await expect(repository.getThreadWithUsernameById('thread-zzz')).rejects.toThrowError(NotFoundError)
+      await expect(repository.getThreadCommentsById('thread-zzz')).rejects.toThrowError(NotFoundError)
     })
   })
 })
