@@ -18,6 +18,20 @@ describe('HTTP server', () => {
     await dataSource.instance.destroy()
   })
 
+  it('should respond with 200 when GET request on root route', async () => {
+    // Arrange
+    const server = await createServer(container)
+
+    // Action
+    const response = await server.inject({
+      method: 'GET',
+      url: '/'
+    })
+
+    // Assert
+    expect(response.statusCode).toEqual(200)
+  })
+
   it('should respond with 404 when requesting unregistered route', async () => {
     // Arrange
     const server = await createServer(container)
